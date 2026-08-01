@@ -1,4 +1,5 @@
 import os
+import glob
 import subprocess
 import sys
 from PyQt6.QtCore import Qt
@@ -92,6 +93,25 @@ class OpenModelicaRunnerApp(QWidget):
         if file_path:
             self.app_input.setText(file_path)
 
+    def find_om_bin(self):
+        """Find the OpenModelica bin path dynamically on Windows."""
+        # 1. Check environment variable OPENMODELICAHOME
+        om_home = os.environ.get("OPENMODELICAHOME")
+        if om_home and os.path.exists(os.path.join(om_home, "bin")):
+            return os.path.join(om_home, "bin")
+
+        # 2. Look in C:\Program Files\OpenModelica*
+        possible_dirs = glob.glob(r"C:\Program Files*\OpenModelica*\bin")
+        if possible_dirs:
+            return possible_dirs[0]
+
+        # 3. Look in OPENMODELICABIN
+        om_bin = os.environ.get("OPENMODELICABIN")
+        if om_bin and os.path.exists(om_bin):
+            return om_bin
+
+        return None
+
     def validate_inputs(self):
         exe_path = self.app_input.text().strip()
         start_str = self.start_input.text().strip()
@@ -128,29 +148,40 @@ class OpenModelicaRunnerApp(QWidget):
         if exe_path is None:
             return
 
-        # Prepare parameters using OpenModelica flags
         cmd = [
             exe_path,
-            f"-override=startTime={start_time},stopTime={stop_time}",
+            f"-startTime={start_time}",
+            f"-stopTime={stop_time}",
         ]
 
         self.log_area.clear()
         self.log_area.append(f"Running command:\n{' '.join(cmd)}\n")
 
+        # Setup environment with OpenModelica DLL path
+        env = os.environ.copy()
+        om_bin = self.find_om_bin()
+        if om_bin:
+            env["PATH"] = om_bin + os.pathsep + env.get("PATH", "")
+            self.log_area.append(f"Using OpenModelica Bin Path: {om_bin}\n")
+
         try:
-            # Execute simulation binary in working directory of executable
             exe_dir = os.path.dirname(exe_path)
             result = subprocess.run(
-                cmd, cwd=exe_dir, capture_output=True, text=True, check=True
+                cmd, cwd=exe_dir, env=env, capture_output=True, text=True, check=True
             )
             self.log_area.append("--- Output Logs ---")
-            self.log_area.append(result.stdout)
+            self.log_area.append(result.stdout if result.stdout else "Simulation completed without console stdout.")
             QMessageBox.information(
                 self, "Success", "OpenModelica Simulation completed successfully!"
             )
         except subprocess.CalledProcessError as e:
             self.log_area.append("--- Execution Error ---")
-            self.log_area.append(e.stderr if e.stderr else str(e))
+            if e.stdout:
+                self.log_area.append(e.stdout)
+            if e.stderr:
+                self.log_area.append(e.stderr)
+            else:
+                self.log_area.append(str(e))
             QMessageBox.critical(
                 self, "Execution Failed", "The executable exited with an error."
             )
