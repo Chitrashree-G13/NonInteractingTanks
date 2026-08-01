@@ -2,7 +2,8 @@ import os
 import glob
 import subprocess
 import sys
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QSize
+from PyQt6.QtGui import QFont, QIcon, QColor, QPalette
 from PyQt6.QtWidgets import (
     QApplication,
     QFileDialog,
@@ -14,74 +15,201 @@ from PyQt6.QtWidgets import (
     QTextEdit,
     QVBoxLayout,
     QWidget,
+    QFrame,
+    QGraphicsDropShadowEffect
 )
 
 
 class OpenModelicaRunnerApp(QWidget):
-    """Desktop Application to execute compiled OpenModelica binaries with custom flags."""
+    """Modern Desktop Application to execute compiled OpenModelica binaries with custom flags."""
 
     def __init__(self):
         super().__init__()
         self.init_ui()
 
     def init_ui(self):
-        self.setWindowTitle("FOSSEE OpenModelica GUI Launcher")
-        self.setMinimumSize(550, 420)
+        self.setWindowTitle("OpenModelica GUI Launcher | FOSSEE Submission")
+        self.resize(750, 600)
+        self.setMinimumSize(650, 520)
 
-        main_layout = QVBoxLayout()
+        # Global Dark Neutral Theme Stylesheet
+        self.setStyleSheet("""
+            QWidget {
+                background-color: #0F172A;
+                color: #F8FAFC;
+                font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            }
+            QFrame#card {
+                background-color: #1E293B;
+                border-radius: 12px;
+                border: 1px solid #334155;
+            }
+            QLabel {
+                font-size: 13px;
+                color: #94A3B8;
+            }
+            QLabel#headerTitle {
+                font-size: 20px;
+                font-weight: bold;
+                color: #38BDF8;
+            }
+            QLabel#headerSubtitle {
+                font-size: 12px;
+                color: #64748B;
+            }
+            QLabel#fieldLabel {
+                font-size: 13px;
+                font-weight: 600;
+                color: #E2E8F0;
+            }
+            QLineEdit {
+                background-color: #0F172A;
+                border: 1px solid #334155;
+                border-radius: 8px;
+                padding: 10px 14px;
+                color: #F8FAFC;
+                font-size: 13px;
+            }
+            QLineEdit:focus {
+                border: 1px solid #38BDF8;
+                background-color: #0F172A;
+            }
+            QPushButton#browseBtn {
+                background-color: #334155;
+                color: #F8FAFC;
+                border: none;
+                border-radius: 8px;
+                padding: 10px 18px;
+                font-weight: 600;
+            }
+            QPushButton#browseBtn:hover {
+                background-color: #475569;
+            }
+            QPushButton#runBtn {
+                background-color: #0284C7;
+                color: #FFFFFF;
+                border: none;
+                border-radius: 8px;
+                padding: 14px;
+                font-size: 15px;
+                font-weight: bold;
+            }
+            QPushButton#runBtn:hover {
+                background-color: #0369A1;
+            }
+            QPushButton#runBtn:pressed {
+                background-color: #075985;
+            }
+            QTextEdit {
+                background-color: #020617;
+                border: 1px solid #1E293B;
+                border-radius: 8px;
+                color: #38BDF8;
+                font-family: 'Consolas', 'Courier New', monospace;
+                font-size: 12px;
+                padding: 10px;
+            }
+        """)
 
-        # 1. Executable Field Selection
-        app_layout = QHBoxLayout()
-        app_label = QLabel("Executable:")
-        self.app_input = QLineEdit()
-        self.app_input.setPlaceholderText("Select OpenModelica compiled executable (.exe)")
+        layout = QVBoxLayout()
+        layout.setContentsMargins(24, 24, 24, 24)
+        layout.setSpacing(18)
+
+        # 1. Header Section
+        header_frame = QFrame()
+        header_frame.setObjectName("card")
+        header_layout = QVBoxLayout()
+        header_layout.setContentsMargins(20, 16, 20, 16)
         
-        # Pre-fill with current folder's executable if present
+        title = QLabel("⚙️ OpenModelica Interactive Launcher")
+        title.setObjectName("headerTitle")
+        subtitle = QLabel("Simulate physical models dynamically with instant parameter configuration")
+        subtitle.setObjectName("headerSubtitle")
+        
+        header_layout.addWidget(title)
+        header_layout.addWidget(subtitle)
+        header_frame.setLayout(header_layout)
+        layout.addWidget(header_frame)
+
+        # 2. Main Config Card
+        config_card = QFrame()
+        config_card.setObjectName("card")
+        config_layout = QVBoxLayout()
+        config_layout.setContentsMargins(20, 20, 20, 20)
+        config_layout.setSpacing(14)
+
+        # Executable Path Field
+        config_layout.addWidget(QLabel("Executable Program Path:", objectName="fieldLabel"))
+        exe_layout = QHBoxLayout()
+        self.app_input = QLineEdit()
+        self.app_input.setPlaceholderText("Select OpenModelica executable (.exe)")
+        
         default_exe = os.path.join(os.getcwd(), "TwoConnectedTanks.exe")
         if os.path.exists(default_exe):
             self.app_input.setText(default_exe)
 
         browse_btn = QPushButton("Browse")
+        browse_btn.setObjectName("browseBtn")
+        browse_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         browse_btn.clicked.connect(self.browse_file)
 
-        app_layout.addWidget(app_label)
-        app_layout.addWidget(self.app_input)
-        app_layout.addWidget(browse_btn)
-        main_layout.addLayout(app_layout)
+        exe_layout.addWidget(self.app_input)
+        exe_layout.addWidget(browse_btn)
+        config_layout.addLayout(exe_layout)
 
-        # 2. Start Time Input
-        start_layout = QHBoxLayout()
-        start_label = QLabel("Start Time (Integer):")
+        # Time Inputs Layout
+        time_layout = QHBoxLayout()
+        time_layout.setSpacing(12)
+
+        start_col = QVBoxLayout()
+        start_col.addWidget(QLabel("Start Time (sec):", objectName="fieldLabel"))
         self.start_input = QLineEdit()
         self.start_input.setPlaceholderText("e.g. 0")
-        start_layout.addWidget(start_label)
-        start_layout.addWidget(self.start_input)
-        main_layout.addLayout(start_layout)
+        start_col.addWidget(self.start_input)
 
-        # 3. Stop Time Input
-        stop_layout = QHBoxLayout()
-        stop_label = QLabel("Stop Time (Integer):")
+        stop_col = QVBoxLayout()
+        stop_col.addWidget(QLabel("Stop Time (sec):", objectName="fieldLabel"))
         self.stop_input = QLineEdit()
         self.stop_input.setPlaceholderText("e.g. 4")
-        stop_layout.addWidget(stop_label)
-        stop_layout.addWidget(self.stop_input)
-        main_layout.addLayout(stop_layout)
+        stop_col.addWidget(self.stop_input)
 
-        # 4. Action Button
-        self.run_btn = QPushButton("Run Simulation")
-        self.run_btn.setStyleSheet(
-            "font-weight: bold; background-color: #007ACC; color: white; padding: 10px; font-size: 14px;"
-        )
+        time_layout.addLayout(start_col)
+        time_layout.addLayout(stop_col)
+        config_layout.addLayout(time_layout)
+
+        # Requirement Hint Badge
+        hint_label = QLabel("⚡ Constraint: 0 ≤ Start Time < Stop Time < 5")
+        hint_label.setStyleSheet("color: #F59E0B; font-size: 11px; font-weight: 500;")
+        config_layout.addWidget(hint_label)
+
+        # Run Button
+        self.run_btn = QPushButton("🚀 Launch Simulation")
+        self.run_btn.setObjectName("runBtn")
+        self.run_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.run_btn.clicked.connect(self.run_simulation)
-        main_layout.addWidget(self.run_btn)
+        config_layout.addWidget(self.run_btn)
 
-        # 5. Output Console/Log Window
-        main_layout.addWidget(QLabel("Execution Logs:"))
+        config_card.setLayout(config_layout)
+        layout.addWidget(config_card)
+
+        # 3. Execution Console Output Card
+        console_card = QFrame()
+        console_card.setObjectName("card")
+        console_layout = QVBoxLayout()
+        console_layout.setContentsMargins(20, 16, 20, 16)
+        
+        console_title = QLabel("Execution Output Console", objectName="fieldLabel")
         self.log_area = QTextEdit()
         self.log_area.setReadOnly(True)
-        main_layout.addWidget(self.log_area)
+        self.log_area.setPlaceholderText("Simulation run outputs and execution logs will appear here...")
 
-        self.setLayout(main_layout)
+        console_layout.addWidget(console_title)
+        console_layout.addWidget(self.log_area)
+        console_card.setLayout(console_layout)
+        
+        layout.addWidget(console_card)
+
+        self.setLayout(layout)
 
     def browse_file(self):
         file_path, _ = QFileDialog.getOpenFileName(
@@ -94,18 +222,14 @@ class OpenModelicaRunnerApp(QWidget):
             self.app_input.setText(file_path)
 
     def find_om_bin(self):
-        """Find the OpenModelica bin path dynamically on Windows."""
-        # 1. Check environment variable OPENMODELICAHOME
         om_home = os.environ.get("OPENMODELICAHOME")
         if om_home and os.path.exists(os.path.join(om_home, "bin")):
             return os.path.join(om_home, "bin")
 
-        # 2. Look in C:\Program Files\OpenModelica*
         possible_dirs = glob.glob(r"C:\Program Files*\OpenModelica*\bin")
         if possible_dirs:
             return possible_dirs[0]
 
-        # 3. Look in OPENMODELICABIN
         om_bin = os.environ.get("OPENMODELICABIN")
         if om_bin and os.path.exists(om_bin):
             return om_bin
@@ -132,12 +256,11 @@ class OpenModelicaRunnerApp(QWidget):
             )
             return None, None, None
 
-        # Task Constraint: 0 <= start time < stop time < 5
         if not (0 <= start_time < stop_time < 5):
             QMessageBox.critical(
                 self,
                 "Validation Error",
-                "Inputs must satisfy the screening condition:\n\n 0 <= Start Time < Stop Time < 5",
+                "Inputs must satisfy condition:\n\n 0 <= Start Time < Stop Time < 5",
             )
             return None, None, None
 
@@ -155,14 +278,13 @@ class OpenModelicaRunnerApp(QWidget):
         ]
 
         self.log_area.clear()
-        self.log_area.append(f"Running command:\n{' '.join(cmd)}\n")
+        self.log_area.append(f"► Running command:\n{' '.join(cmd)}\n")
 
-        # Setup environment with OpenModelica DLL path
         env = os.environ.copy()
         om_bin = self.find_om_bin()
         if om_bin:
             env["PATH"] = om_bin + os.pathsep + env.get("PATH", "")
-            self.log_area.append(f"Using OpenModelica Bin Path: {om_bin}\n")
+            self.log_area.append(f"► Using OpenModelica Bin Path: {om_bin}\n")
 
         try:
             exe_dir = os.path.dirname(exe_path)
