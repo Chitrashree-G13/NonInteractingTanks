@@ -1,0 +1,18 @@
+# Python files
+__pycache__/
+*.pyc
+
+# OpenModelica generated build and temporary files
+*.exe
+*.c
+*.o
+*.makefile
+*.log
+*.mat
+*.libs
+*.c_omc
+*.h
+*.bat
+*.bin
+*.json
+*.xml
