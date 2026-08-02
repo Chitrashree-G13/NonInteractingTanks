@@ -2,55 +2,63 @@
 
 ## Overview
 
-This repository contains my solution for the **FOSSEE OpenModelica Screening Task**. The project models and simulates a **Non-Interacting Two-Tank Liquid System** using OpenModelica. It also includes a Python-based desktop application developed with **PyQt6** for launching simulations and an automation script using **OMPython** for executing simulations programmatically.
+This repository contains my solution for the **FOSSEE OpenModelica Screening Task 2**.
 
-The project demonstrates object-oriented modeling, desktop application development, simulation automation, input validation, and scientific visualization.
-
----
-
-## Repository
-
-**Project Name:** NonInteractingTanks
+The project models and simulates a **Non-Interacting Two-Tank Liquid System** using OpenModelica. It also includes a desktop application developed with **Python (PyQt6)** that allows users to launch the generated OpenModelica executable with custom start and stop times. Additionally, an automation script using **OMPython** is provided to simulate the model programmatically and visualize the results using Matplotlib.
 
 ---
 
 ## Features
 
 - Object-oriented Modelica implementation
-- Interactive PyQt6 desktop application
-- OpenModelica executable launcher
-- Automated simulation using OMPython
+- PyQt6 desktop application
+- Browse and launch OpenModelica executable
 - Simulation parameter validation
-- Real-time execution log console
+- Automated simulation using OMPython
+- Execution log console
 - Scientific visualization using Matplotlib
 - Modular and maintainable project structure
 
 ---
 
-## Repository Structure
+# Repository Structure
 
 ```text
 NonInteractingTanks/
 │
+├── screenshots/
+│   ├── GUI_successfull_simulation.png
+│   ├── simulation_running.png
+│   └── output_graph.png
+│
 ├── .gitignore
+├── README.md
+├── app.py
+├── run_simulation.py
+│
 ├── package.mo
 ├── package.order
 ├── FlowConnect.mo
 ├── Tank.mo
 ├── Tank2.mo
 ├── TwoConnectedTanks.mo
+│
 ├── TwoConnectedTanks.exe
 ├── TwoConnectedTanks.bat
 ├── TwoConnectedTanks_init.xml
-├── app.py                          # PyQt6 desktop application
-├── run_simulation.py               # OMPython automation script
-├── simulation_results.png          # Generated simulation plot
-└── README.md
+├── TwoConnectedTanks_info.json
+├── TwoConnectedTanks_external_functions.json
+├── TwoConnectedTanks_JacA.bin
+├── TwoConnectedTanks_prof.intdata
+├── TwoConnectedTanks_prof.realdata
+├── TwoConnectedTanks_res.mat
+│
+└── simulation_results.png
 ```
 
 ---
 
-## Technologies Used
+# Technologies Used
 
 - OpenModelica v1.27.0 (64-bit)
 - Modelica
@@ -63,7 +71,7 @@ NonInteractingTanks/
 
 ---
 
-## Prerequisites
+# Prerequisites
 
 Install the required Python packages:
 
@@ -77,96 +85,64 @@ pip install PyQt6 OMPython matplotlib numpy pandas
 
 ## 1. Launch the Desktop Application
 
-Start the application using:
-
 ```bash
 python app.py
 ```
 
-The PyQt6 desktop interface will open, providing an interactive environment to configure and execute OpenModelica simulations.
+The desktop application allows users to:
 
-### Using the Desktop Application
+- Browse and select the generated OpenModelica executable.
+- Enter Start Time and Stop Time.
+- Launch the simulation.
+- View execution logs.
 
-1. Launch the application using the above command.
-2. Click **Browse** and select the compiled OpenModelica executable (`TwoConnectedTanks.exe`).
-3. Enter the required simulation parameters:
-   - **Start Time**
-   - **Stop Time**
-4. Click **Launch Simulation**.
-5. The application validates the input parameters before execution.
-6. The selected executable is launched using Python's `subprocess` module.
-7. Execution logs and simulation status are displayed in the integrated output console.
-8. Upon successful completion, the simulation generates the corresponding result files.
+### Input Validation
 
+The application validates the simulation parameters before execution.
 
-> **Note:** Before launching the simulation, ensure that `TwoConnectedTanks.exe` has been successfully generated from the OpenModelica model and is available within the project directory.
+```
+0 ≤ Start Time < Stop Time < 5
+```
+
+If invalid values are entered, an appropriate error message is displayed.
 
 ---
 
-## 2. Run the Automated Simulation Script
-
-The project also provides an automation script for executing the model directly through OpenModelica.
-
-Run:
+## 2. Run the Automation Script
 
 ```bash
 python run_simulation.py
 ```
 
-This script performs the following tasks:
+The script performs the following operations:
 
-- Connects to the OpenModelica Compiler (OMC) using **OMPython**.
-- Loads the Modelica package.
-- Compiles and simulates the model programmatically.
-- Extracts simulation data.
-- Generates visualization plots using Matplotlib.
-
----
-
-## Desktop Application Features
-
-- Browse OpenModelica executable
-- Automatic executable detection
-- Simulation parameter validation
-- Execution log console
-- Error handling using dialog boxes
-- Professional PyQt6 user interface
+- Connects to OpenModelica Compiler (OMC)
+- Loads the Modelica package
+- Simulates the TwoConnectedTanks model
+- Reads simulation results
+- Generates a visualization using Matplotlib
 
 ---
 
-## Input Validation
-
-The application validates simulation parameters before execution.
-
-Condition:
-
-```text
-0 ≤ Start Time < Stop Time < 5
-```
-
-If invalid values are entered, the application displays an appropriate validation message.
-
----
-
-## Project Workflow
+# Project Workflow
 
 ```text
 User
    │
    ▼
-Desktop GUI (PyQt6)
+PyQt6 Desktop Application
    │
    ▼
 Input Validation
    │
    ▼
-Launch OpenModelica Executable
+Launch TwoConnectedTanks.exe
    │
    ▼
-Simulation Execution
+OpenModelica Simulation
    │
    ▼
-Console Output
+Execution Logs
    │
    ▼
 Simulation Results
@@ -174,43 +150,63 @@ Simulation Results
 
 ---
 
-## Learning Outcomes
+# Screenshots
 
-This project helped me gain practical experience in:
+## Desktop Application
 
-- OpenModelica modeling
-- Modelica package development
-- Python automation using OMPython
-- Desktop GUI development with PyQt6
-- Object-Oriented Programming
-- Simulation execution using subprocess
-- Scientific plotting using Matplotlib
-- Input validation and exception handling
+![GUI](screenshots/GUI_successfull_simulation.png)
 
 ---
 
-## Future Improvements
+## OpenModelica Simulation
 
-- Multiple model support
+![Simulation](screenshots/simulation_running.png)
+
+---
+
+## Simulation Output Graph
+
+![Output Graph](screenshots/output_graph.png)
+
+---
+
+# Learning Outcomes
+
+This project provided practical experience in:
+
+- OpenModelica Modeling
+- Object-Oriented Modelica Design
+- Desktop Application Development using PyQt6
+- OMPython Automation
+- Scientific Plotting using Matplotlib
+- Input Validation
+- Exception Handling
+- Python Subprocess Programming
+
+---
+
+# Future Improvements
+
+- Support multiple OpenModelica models
+- Automatic graph visualization inside the GUI
 - Solver selection
-- Automatic result plotting
-- Export simulation reports
-- Dark/Light theme switching
 - Parameter configuration panel
+- Export simulation reports
 - Recent executable history
+- Dark/Light theme support
 
 ---
 
-## Author
+# Author
 
 **Chitrashree G**
 
 B.E. Computer Science & Design
 
-Project developed as part of the **FOSSEE OpenModelica Screening Task**.
+Developed as part of the **FOSSEE OpenModelica Screening Task 2**.
 
 ---
 
-## License
+# License
 
-This project is shared for educational and demonstration purposes as part of the FOSSEE OpenModelica Screening Task.
+This project is shared for educational purposes as part of the FOSSEE OpenModelica Screening Task.
